@@ -4,8 +4,10 @@ Copyright © 2025 Sergey Polivin <s.polivin@gmail.com>
 package jobs
 
 import (
+	"encoding/csv"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"text/tabwriter"
 
@@ -13,6 +15,7 @@ import (
 )
 
 const dateLayout = "2006-01-02" // Date format for job applications
+const csvFileName = "jobs.csv"  // Default CSV file name
 
 // AddJobApplication adds a new job application
 func AddJobApplication(company string, position string, status string, applied_on string) error {
@@ -20,13 +23,13 @@ func AddJobApplication(company string, position string, status string, applied_o
 	// Loading existing job applications
 	jobApplicationsList, err := loadJobApplications()
 	if err != nil {
-		return fmt.Errorf("error loading job applications: %w", err)
+		return fmt.Errorf("failed to load job applications: %w", err)
 	}
 
 	// Parsing the date
 	appliedOnDate, err := utils.ParseDate(dateLayout, applied_on)
 	if err != nil {
-		return fmt.Errorf("error parsing date of application: %w", err)
+		return fmt.Errorf("failed to parse date of application: %w", err)
 	}
 
 	// Setting default status
@@ -50,33 +53,80 @@ func AddJobApplication(company string, position string, status string, applied_o
 		return fmt.Errorf("error saving job application: %w", err)
 	}
 
-	fmt.Println("Job application added successfully")
-
 	return nil
 }
 
-// ListJobApplications lists all saved job applications
-func ListJobApplications() error {
+// ListJobApplications lists all saved job applications (with sorting options)
+func ListJobApplications(sortBy string, descending bool) error {
 
 	// Loading existing job applications
 	apps, err := loadJobApplications()
 	if err != nil {
-		return fmt.Errorf("failed to load jobs: %w", err)
+		return fmt.Errorf("failed to load job applications: %w", err)
 	}
 	// Checking if there are any job applications
 	if len(apps) == 0 {
-		return fmt.Errorf("no jobs found")
+		return fmt.Errorf("no job applications found")
+	}
+
+	// Sorting job applications
+	switch sortBy {
+	case "company":
+		if !descending {
+			sort.Slice(apps, func(i, j int) bool {
+				return apps[i].Company < apps[j].Company
+			})
+		} else {
+			sort.Slice(apps, func(i, j int) bool {
+				return apps[i].Company > apps[j].Company
+			})
+		}
+	case "position":
+		if !descending {
+			sort.Slice(apps, func(i, j int) bool {
+				return apps[i].Position < apps[j].Position
+			})
+		} else {
+			sort.Slice(apps, func(i, j int) bool {
+				return apps[i].Position > apps[j].Position
+			})
+		}
+	case "status":
+		if !descending {
+			sort.Slice(apps, func(i, j int) bool {
+				return apps[i].Status < apps[j].Status
+			})
+		} else {
+			sort.Slice(apps, func(i, j int) bool {
+				return apps[i].Status > apps[j].Status
+			})
+		}
+	case "applied_on":
+		if !descending {
+			sort.Slice(apps, func(i, j int) bool {
+				return apps[i].AppliedOn < apps[j].AppliedOn
+			})
+		} else {
+			sort.Slice(apps, func(i, j int) bool {
+				return apps[i].AppliedOn > apps[j].AppliedOn
+			})
+		}
+	case "":
+		// no sorting
+	default:
+		return fmt.Errorf("invalid sort option: %s", sortBy)
 	}
 
 	// Displaying saved job applications
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "ID\tCompany\tPosition\tStatus\tAppliedOn")
-	fmt.Fprintln(w, "--\t-------\t--------\t------\t---------")
+	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	defer writer.Flush()
+
+	fmt.Fprintln(writer, "ID\tCompany\tPosition\tStatus\tAppliedOn")
+	fmt.Fprintln(writer, "--\t-------\t--------\t------\t---------")
 	for _, app := range apps {
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n",
+		fmt.Fprintf(writer, "%d\t%s\t%s\t%s\t%s\n",
 			app.ID, app.Company, app.Position, app.Status, app.AppliedOn)
 	}
-	w.Flush()
 
 	return nil
 }
@@ -94,6 +144,10 @@ func DeleteJobApplication(id string) error {
 	apps, err := loadJobApplications()
 	if err != nil {
 		return fmt.Errorf("failed to load job applications: %w", err)
+	}
+	// Checking if there any job applications
+	if len(apps) == 0 {
+		return fmt.Errorf("no job applications found")
 	}
 
 	// Iterating over available job applications and removing the needed one
@@ -115,8 +169,6 @@ func DeleteJobApplication(id string) error {
 	if err := saveJobApplications(updatedJobApplications); err != nil {
 		return fmt.Errorf("error saving job application: %w", err)
 	}
-
-	fmt.Printf("Deleted job application with id %d\n", id_num)
 
 	return nil
 
@@ -140,8 +192,6 @@ func ClearAllJobApplications() error {
 		return fmt.Errorf("error saving job applications: %w", err)
 	}
 
-	fmt.Println("All job applications cleared")
-
 	return nil
 }
 
@@ -157,6 +207,10 @@ func UpdateJobApplication(id string, company string, position string, status str
 	apps, err := loadJobApplications()
 	if err != nil {
 		return fmt.Errorf("failed to load job applications: %w", err)
+	}
+	// Checking if there any job applications
+	if len(apps) == 0 {
+		return fmt.Errorf("no job applications found")
 	}
 
 	// Finding the job application to update
@@ -185,7 +239,7 @@ func UpdateJobApplication(id string, company string, position string, status str
 	if applied_on != "" {
 		appliedOnDate, err := utils.ParseDate(dateLayout, applied_on)
 		if err != nil {
-			return fmt.Errorf("error parsing date of application: %w", err)
+			return fmt.Errorf("failed to parse date of application: %w", err)
 		}
 		jobApplicationToUpdate.AppliedOn = appliedOnDate.Format(dateLayout)
 	}
@@ -200,6 +254,52 @@ func UpdateJobApplication(id string, company string, position string, status str
 		fmt.Println("No changes made.")
 	} else {
 		fmt.Printf("Updated job application with id %d\n", id_num)
+	}
+
+	return nil
+}
+
+// ExportToCsv exports job applications to a CSV file
+func ExportToCsv() error {
+
+	// Loading existing job applications
+	apps, err := loadJobApplications()
+	if err != nil {
+		return fmt.Errorf("failed to load job applications: %w", err)
+	}
+	// Checking if there any job applications
+	if len(apps) == 0 {
+		return fmt.Errorf("no job applications found")
+	}
+
+	// Creating CSV file
+	file, err := os.Create(csvFileName)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Creating a CSV writer
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Writing header
+	if err := writer.Write([]string{"ID", "Company", "Position", "Status", "DateApplied"}); err != nil {
+		return err
+	}
+
+	// Writing job entries
+	for _, job := range apps {
+		row := []string{
+			strconv.Itoa(job.ID),
+			job.Company,
+			job.Position,
+			job.Status,
+			job.AppliedOn,
+		}
+		if err := writer.Write(row); err != nil {
+			return err
+		}
 	}
 
 	return nil
