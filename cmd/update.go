@@ -22,7 +22,10 @@ var updateCmd = &cobra.Command{
 		}
 		// Updating the job application
 		id := args[0]
-		return jobs.UpdateJobApplication(id, company, position, status, applied_on)
+		if err := jobs.UpdateJobApplication(id, company, position, status, applied_on); err != nil {
+			return fmt.Errorf("error updating job application: %w", err)
+		}
+		return nil
 	},
 }
 

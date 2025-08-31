@@ -4,6 +4,8 @@ Copyright © 2025 Sergey Polivin <s.polivin@gmail.com>
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/spolivin/jobtracker/jobs"
 )
@@ -17,7 +19,11 @@ var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a new job application",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return jobs.AddJobApplication(company, position, status, applied_on)
+		if err := jobs.AddJobApplication(company, position, status, applied_on); err != nil {
+			return fmt.Errorf("error adding job application: %w", err)
+		}
+		fmt.Println("Job application added successfully")
+		return nil
 	},
 }
 

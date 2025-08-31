@@ -20,7 +20,11 @@ var deleteCmd = &cobra.Command{
 		} else if args_len > 1 {
 			return fmt.Errorf("too many arguments")
 		}
-		return jobs.DeleteJobApplication(args[0])
+		if err := jobs.DeleteJobApplication(args[0]); err != nil {
+			return fmt.Errorf("error deleting job application: %w", err)
+		}
+		fmt.Printf("Deleted job application with id %s\n", args[0])
+		return nil
 	},
 }
 

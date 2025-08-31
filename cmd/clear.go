@@ -34,7 +34,11 @@ var clearCmd = &cobra.Command{
 			}
 		}
 
-		return jobs.ClearAllJobApplications()
+		if err := jobs.ClearAllJobApplications(); err != nil {
+			return fmt.Errorf("error clearing job applications: %w", err)
+		}
+		fmt.Println("All job applications cleared")
+		return nil
 	},
 }
 
