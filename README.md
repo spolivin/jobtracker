@@ -2,7 +2,7 @@
 
 A simple command-line tool written in Go to help you keep track of your job applications.  
 
-You can add, update, list, delete and clear job application records stored in a local JSON file.  
+You can add, update, sort, list, delete and clear job application records stored in a local JSON file.  
 
 ## Features
 
@@ -11,6 +11,8 @@ You can add, update, list, delete and clear job application records stored in a 
 - **Update** existing job applications.
 - **Delete** specific applications by ID.
 - **Clear** all stored applications.
+- **Sort** job applications.
+- **Export** saved job applications to CSV.
 - Data stored locally in a JSON file for persistence.
 
 ## Installation
@@ -36,6 +38,7 @@ jobtracker [command] [flags]
 * `list` - List all saved job applications.
 * `delete` - Delete a specific job application by its ID.
 * `clear` - Clear all job applications at once.
+* `export` - Export all job applications to a CSV file.
 
 ### Global flags
 
@@ -76,6 +79,12 @@ ID  Company    Position                     Status     AppliedOn
 7   NCR        Devops                       Applied    2025-08-30
 ```
 
+You can optionally sort the job applications by the above columns and display the result in the same convenient format in ascending or descending order (`--desc` flag):
+
+```bash
+jobtracker list --sort=applied_on --desc
+```
+
 ### Update an existing applications
 
 If at some point we need to update the information on some applications, we can run:
@@ -98,6 +107,13 @@ jobtracker delete 3
 jobtracker clear
 ```
 > This command will firstly prompt for the user's confirmation and then delete all available applications. One can optionally set `--force` flag to skip prompting.
+
+### Export all applications to CSV
+
+```bash
+jobtracker export
+```
+> This command will export all applications stored in `jobs.json` to `jobs.csv`
 
 ## Data storage
 
