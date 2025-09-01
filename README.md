@@ -23,6 +23,12 @@ Make sure you have Go installed (1.18+ recommended). You can install the tool di
 go install github.com/spolivin/jobtracker@latest
 ```
 
+After installation, you can make sure that the latest version is installed (v1.0.2) by running:
+
+```bash
+jobtracker --version
+```
+
 ## Usage 
 
 General command structure:
@@ -68,15 +74,17 @@ jobtracker list
 Running the above command will output the saved job applications in a convenient and easy-to-read format:
 
 ```
-ID  Company    Position                     Status     AppliedOn
---  -------    --------                     ------     ---------
-1   Facebook   Software Engineer            Applied    2023-10-01
-2   Google     Data Scientist               Interview  2023-09-15
-3   Apple      Machine Learning Engineer    Applied    2023-10-01
-4   Microsoft  Machine Learning Specialist  Applied    2025-08-30
-5   Huawei     Frontend Developer           Applied    2025-08-30
-6   Luxoft     Backend Developer            Applied    2025-08-30
-7   NCR        Devops                       Applied    2025-08-30
+┌────┬───────────┬─────────────────────────────┬───────────┬────────────┐
+│ ID │  COMPANY  │          POSITION           │  STATUS   │ APPLIED ON │
+├────┼───────────┼─────────────────────────────┼───────────┼────────────┤
+│ 1  │ Facebook  │ Software Engineer           │ Applied   │ 2023-10-01 │
+│ 2  │ Google    │ Data Scientist              │ Interview │ 2023-09-15 │
+│ 3  │ Apple     │ Machine Learning Engineer   │ Applied   │ 2023-10-01 │
+│ 4  │ Microsoft │ Machine Learning Specialist │ Applied   │ 2025-09-01 │
+│ 5  │ Huawei    │ Frontend Developer          │ Applied   │ 2025-09-01 │
+│ 6  │ Luxoft    │ Backend Developer           │ Applied   │ 2025-09-01 │
+│ 7  │ NCR       │ Devops                      │ Applied   │ 2025-09-01 │
+└────┴───────────┴─────────────────────────────┴───────────┴────────────┘
 ```
 
 You can optionally sort the job applications by the above columns and display the result in the same convenient format in ascending or descending order (`--desc` flag):
