@@ -9,8 +9,8 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"text/tabwriter"
 
+	"github.com/olekukonko/tablewriter"
 	"github.com/spolivin/jobtracker/utils"
 )
 
@@ -69,64 +69,42 @@ func ListJobApplications(sortBy string, descending bool) error {
 		return fmt.Errorf("no job applications found")
 	}
 
-	// Sorting job applications
-	switch sortBy {
-	case "company":
-		if !descending {
-			sort.Slice(apps, func(i, j int) bool {
-				return apps[i].Company < apps[j].Company
-			})
-		} else {
-			sort.Slice(apps, func(i, j int) bool {
-				return apps[i].Company > apps[j].Company
-			})
-		}
-	case "position":
-		if !descending {
-			sort.Slice(apps, func(i, j int) bool {
-				return apps[i].Position < apps[j].Position
-			})
-		} else {
-			sort.Slice(apps, func(i, j int) bool {
-				return apps[i].Position > apps[j].Position
-			})
-		}
-	case "status":
-		if !descending {
-			sort.Slice(apps, func(i, j int) bool {
-				return apps[i].Status < apps[j].Status
-			})
-		} else {
-			sort.Slice(apps, func(i, j int) bool {
-				return apps[i].Status > apps[j].Status
-			})
-		}
-	case "applied_on":
-		if !descending {
-			sort.Slice(apps, func(i, j int) bool {
-				return apps[i].AppliedOn < apps[j].AppliedOn
-			})
-		} else {
-			sort.Slice(apps, func(i, j int) bool {
-				return apps[i].AppliedOn > apps[j].AppliedOn
-			})
-		}
-	case "":
-		// no sorting
-	default:
-		return fmt.Errorf("invalid sort option: %s", sortBy)
+	// Defining sorting functions
+	sortFuncs := map[string]func(i, j int) bool{
+		"company":    func(i, j int) bool { return apps[i].Company < apps[j].Company },
+		"position":   func(i, j int) bool { return apps[i].Position < apps[j].Position },
+		"status":     func(i, j int) bool { return apps[i].Status < apps[j].Status },
+		"applied_on": func(i, j int) bool { return apps[i].AppliedOn < apps[j].AppliedOn },
 	}
 
-	// Displaying saved job applications
-	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	defer writer.Flush()
+	// Sorting job applications if needed
+	if sortBy != "" {
+		sortFunc, present := sortFuncs[sortBy]
+		if !present {
+			return fmt.Errorf("invalid sort option: %s", sortBy)
+		}
+		if descending {
+			sort.Slice(apps, func(i, j int) bool { return !sortFunc(i, j) })
+		} else {
+			sort.Slice(apps, sortFunc)
+		}
+	}
 
-	fmt.Fprintln(writer, "ID\tCompany\tPosition\tStatus\tAppliedOn")
-	fmt.Fprintln(writer, "--\t-------\t--------\t------\t---------")
+	// Displaying job applications
+	table := tablewriter.NewWriter(os.Stdout)
+	table.Header([]string{"ID", "Company", "Position", "Status", "AppliedOn"})
+
 	for _, app := range apps {
-		fmt.Fprintf(writer, "%d\t%s\t%s\t%s\t%s\n",
-			app.ID, app.Company, app.Position, app.Status, app.AppliedOn)
+		table.Append([]string{
+			strconv.Itoa(app.ID),
+			app.Company,
+			app.Position,
+			app.Status,
+			app.AppliedOn,
+		})
 	}
+
+	table.Render()
 
 	return nil
 }
