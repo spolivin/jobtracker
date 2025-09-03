@@ -3,6 +3,8 @@ Copyright © 2025 Sergey Polivin <s.polivin@gmail.com>
 */
 package jobs
 
+import "strconv"
+
 // JobApplication represents a job application entry
 type JobApplication struct {
 	ID        int    `json:"id"`
@@ -21,4 +23,15 @@ func getNextID(jobs []JobApplication) int {
 		}
 	}
 	return maxID + 1
+}
+
+// convertToStringSlice converts a JobApplication to a slice of strings
+func (app *JobApplication) convertToStringSlice() []string {
+	return []string{
+		strconv.Itoa(app.ID),
+		app.Company,
+		app.Position,
+		app.Status,
+		app.AppliedOn,
+	}
 }
