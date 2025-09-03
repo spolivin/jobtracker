@@ -10,7 +10,6 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/spolivin/jobtracker/utils"
 )
 
@@ -91,20 +90,9 @@ func ListJobApplications(sortBy string, descending bool) error {
 	}
 
 	// Displaying job applications
-	table := tablewriter.NewWriter(os.Stdout)
-	table.Header([]string{"ID", "Company", "Position", "Status", "AppliedOn"})
-
-	for _, app := range apps {
-		table.Append([]string{
-			strconv.Itoa(app.ID),
-			app.Company,
-			app.Position,
-			app.Status,
-			app.AppliedOn,
-		})
+	if err := renderTable(apps); err != nil {
+		return fmt.Errorf("failed to render table: %w", err)
 	}
-
-	table.Render()
 
 	return nil
 }
@@ -262,22 +250,55 @@ func ExportToCsv() error {
 	defer writer.Flush()
 
 	// Writing header
-	if err := writer.Write([]string{"ID", "Company", "Position", "Status", "DateApplied"}); err != nil {
+	if err := writer.Write(headerColumns); err != nil {
 		return err
 	}
 
 	// Writing job entries
 	for _, job := range apps {
-		row := []string{
-			strconv.Itoa(job.ID),
-			job.Company,
-			job.Position,
-			job.Status,
-			job.AppliedOn,
-		}
+		row := job.convertToStringSlice()
 		if err := writer.Write(row); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// SearchJobApplications searches for job applications based on the provided criteria
+func SearchJobApplications(id string, company string, position string, status string, applied_on string) error {
+
+	// Loading existing job applications
+	apps, err := loadJobApplications()
+	if err != nil {
+		return fmt.Errorf("failed to load job applications: %w", err)
+	}
+	// Checking if there any job applications
+	if len(apps) == 0 {
+		return fmt.Errorf("no job applications found")
+	}
+
+	// Filtering job applications based on search criteria
+	var results []JobApplication
+	for _, job := range apps {
+		if (id == "" || strconv.Itoa(job.ID) == id) &&
+			(company == "" || job.Company == company) &&
+			(position == "" || job.Position == position) &&
+			(status == "" || job.Status == status) &&
+			(applied_on == "" || job.AppliedOn == applied_on) {
+			results = append(results, job)
+		}
+	}
+
+	// Checking if any job applications matched the search criteria
+	if len(results) == 0 {
+		fmt.Println("No job applications found matching the criteria")
+		return nil
+	}
+
+	// Displaying the search results
+	if err := renderTable(results); err != nil {
+		return fmt.Errorf("failed to render table: %w", err)
 	}
 
 	return nil
