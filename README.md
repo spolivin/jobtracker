@@ -2,13 +2,14 @@
 
 A simple command-line tool written in Go to help you keep track of your job applications.  
 
-You can add, update, sort, list, delete and clear job application records stored in a local JSON file.  
+You can add, update, sort, search, list, delete and clear job application records stored in a local JSON file.  
 
 ## Features
 
 - **Add** new job applications with company, position, status, and date.
 - **List** all saved job applications in a clean tabular format.
 - **Update** existing job applications.
+- **Search** job applications.
 - **Delete** specific applications by ID.
 - **Clear** all stored applications.
 - **Sort** job applications.
@@ -41,6 +42,7 @@ jobtracker [command] [flags]
 
 * `add` - Add a new job application.
 * `update` - Update an existing job application.
+* `search` - Search a job application based on criteria.
 * `list` - List all saved job applications.
 * `delete` - Delete a specific job application by its ID.
 * `clear` - Clear all job applications at once.
@@ -93,12 +95,20 @@ You can optionally sort the job applications by the above columns and display th
 jobtracker list --sort=applied_on --desc
 ```
 
+### Search job applications
+
+One can find the job applications by running the search query in this way:
+
+```bash
+jobtracker search --company=Apple --status=Applied
+```
+
 ### Update an existing applications
 
 If at some point we need to update the information on some applications, we can run:
 
 ```bash
-jobtracker update 3 --status="Interview"
+jobtracker update 3 --status=Interview
 ```
 > This command will update entry with ID=3 and modify `status` to `"Interview"`.
 
