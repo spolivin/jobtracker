@@ -1,43 +1,53 @@
 /*
-Copyright © 2025 Sergey Polivin <s.polivin@gmail.com>
+Copyright © 2026 Sergey Polivin <s.polivin@gmail.com>
 */
 package cmd
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/spolivin/jobtracker/jobs"
+	"github.com/spolivin/jobtracker/internal/db"
 )
 
 var force bool
 
+// clearCmd represents the clear command
 var clearCmd = &cobra.Command{
 	Use:   "clear",
 	Short: "Clear all job applications",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Not forcing deletion
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		// Check if 'applications' table exists in Postgres
+		tableExists, err := db.CheckTableExists(ctx, "applications")
+		if err != nil {
+			return err
+		}
+		if !tableExists {
+			return fmt.Errorf("Drop cannot proceed: table 'applications' does not exist")
+		}
+		// Prompt user for confirmation
 		if !force {
-			// Asking for confirmation to clear all job applications
 			reader := bufio.NewReader(os.Stdin)
 			fmt.Print("Are you sure you want to delete all job applications? (y/N): ")
 			answer, _ := reader.ReadString('\n')
 			answer = strings.TrimSpace(strings.ToLower(answer))
-
-			// Cancelling if the answer is not yes
 			if answer != "y" && answer != "yes" {
-				fmt.Println("Operation cancelled.")
+				fmt.Fprintln(os.Stderr, "Drop operation cancelled.")
 				return nil
 			}
 		}
-
-		if err := jobs.ClearAllJobApplications(); err != nil {
-			return fmt.Errorf("error clearing job applications: %w", err)
+		// Drop the 'applications' table
+		if err = db.DropJobApplicationsTable(ctx); err != nil {
+			return err
 		}
-		fmt.Println("All job applications cleared")
+		cmd.Println("Table 'applications' dropped successfully.")
 		return nil
 	},
 }

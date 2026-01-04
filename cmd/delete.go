@@ -1,33 +1,54 @@
 /*
-Copyright © 2025 Sergey Polivin <s.polivin@gmail.com>
+Copyright © 2026 Sergey Polivin <s.polivin@gmail.com>
 */
 package cmd
 
 import (
+	"context"
+	"os"
+	"time"
+
 	"fmt"
 
+	"github.com/spolivin/jobtracker/internal/db"
+
 	"github.com/spf13/cobra"
-	"github.com/spolivin/jobtracker/jobs"
 )
 
+var deleteId int
+
+// deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
-	Short: "Delete a job application by its ID",
+	Short: "Delete a job application by ID",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Making sure that one ID is passed
-		if args_len := len(args); args_len == 0 {
-			return fmt.Errorf("job ID is required")
-		} else if args_len > 1 {
-			return fmt.Errorf("too many arguments")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		// Check if 'applications' table exists in Postgres
+		tableExists, err := db.CheckTableExists(ctx, "applications")
+		if err != nil {
+			return err
 		}
-		if err := jobs.DeleteJobApplication(args[0]); err != nil {
-			return fmt.Errorf("error deleting job application: %w", err)
+		if !tableExists {
+			return fmt.Errorf("Delete cannot proceed: table 'applications' does not exist")
 		}
-		fmt.Printf("Deleted job application with id %s\n", args[0])
+		// Delete the job application from the database
+		rowsAffected, err := db.DeleteJobApplication(ctx, deleteId)
+		if err != nil {
+			return err
+		}
+		if rowsAffected == 0 {
+			fmt.Fprintln(os.Stderr, "No job application found with the specified ID. No delete performed.")
+			return nil
+		}
+		cmd.Println(fmt.Sprintf("Job application with ID %d deleted successfully", deleteId))
 		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(deleteCmd)
+
+	deleteCmd.Flags().IntVarP(&deleteId, "id", "i", 0, "Job application ID to delete")
+	deleteCmd.MarkFlagRequired("id")
 }

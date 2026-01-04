@@ -1,30 +1,46 @@
 /*
-Copyright © 2025 Sergey Polivin <s.polivin@gmail.com>
+Copyright © 2026 Sergey Polivin <s.polivin@gmail.com>
 */
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/spolivin/jobtracker/jobs"
+	"github.com/spolivin/jobtracker/internal/db"
 )
 
+var updateId int
+var newStatus string
+
+// updateCmd represents the update command
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Update a job application by its ID",
+	Short: "Update the status of a job application",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Making sure that one ID is passed
-		if args_len := len(args); args_len == 0 {
-			return fmt.Errorf("job ID is required")
-		} else if args_len > 1 {
-			return fmt.Errorf("too many arguments")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		// Check if 'applications' table exists in Postgres
+		tableExists, err := db.CheckTableExists(ctx, "applications")
+		if err != nil {
+			return err
 		}
-		// Updating the job application
-		id := args[0]
-		if err := jobs.UpdateJobApplication(id, company, position, status, applied_on); err != nil {
-			return fmt.Errorf("error updating job application: %w", err)
+		if !tableExists {
+			return fmt.Errorf("Update cannot proceed: table 'applications' does not exist.")
 		}
+		// Update the job application status in the database
+		rowsAffected, err := db.UpdateJobApplicationStatus(ctx, updateId, newStatus)
+		if err != nil {
+			return err
+		}
+		if rowsAffected == 0 {
+			fmt.Fprintln(os.Stderr, "No job application found with the specified ID. No update performed.")
+			return nil
+		}
+		cmd.Println("Job application status updated successfully")
 		return nil
 	},
 }
@@ -32,8 +48,9 @@ var updateCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(updateCmd)
 
-	updateCmd.Flags().StringVarP(&company, "company", "c", "", "Company name")
-	updateCmd.Flags().StringVarP(&position, "position", "p", "", "Job position")
-	updateCmd.Flags().StringVarP(&status, "status", "s", "", "Job status")
-	updateCmd.Flags().StringVarP(&applied_on, "applied_on", "a", "", "Date applied")
+	updateCmd.Flags().IntVarP(&updateId, "id", "i", 0, "Job application ID")
+	updateCmd.Flags().StringVarP(&newStatus, "status", "s", "", "Job status")
+
+	updateCmd.MarkFlagRequired("id")
+	updateCmd.MarkFlagRequired("status")
 }

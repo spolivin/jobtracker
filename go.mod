@@ -3,6 +3,8 @@ module github.com/spolivin/jobtracker
 go 1.24.5
 
 require (
+	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.10.9
 	github.com/olekukonko/tablewriter v1.0.9
 	github.com/spf13/cobra v1.9.1
 )
