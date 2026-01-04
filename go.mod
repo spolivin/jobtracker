@@ -1,4 +1,4 @@
-module github.com/spolivin/jobtracker
+module github.com/spolivin/jobtracker/v2
 
 go 1.24.5
 

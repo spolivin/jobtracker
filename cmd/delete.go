@@ -10,7 +10,7 @@ import (
 
 	"fmt"
 
-	"github.com/spolivin/jobtracker/internal/db"
+	"github.com/spolivin/jobtracker/v2/internal/db"
 
 	"github.com/spf13/cobra"
 )

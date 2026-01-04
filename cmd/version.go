@@ -5,7 +5,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/spolivin/jobtracker/internal/version"
+	"github.com/spolivin/jobtracker/v2/internal/version"
 )
 
 // versionCmd represents the version command

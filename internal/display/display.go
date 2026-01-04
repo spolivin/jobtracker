@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/spolivin/jobtracker/internal/db"
+	"github.com/spolivin/jobtracker/v2/internal/db"
 )
 
 // RenderTable renders the job applications data in a table format

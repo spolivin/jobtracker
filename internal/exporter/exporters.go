@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/spolivin/jobtracker/internal/db"
+	"github.com/spolivin/jobtracker/v2/internal/db"
 )
 
 // ExportToJson exports job application data to a JSON file.

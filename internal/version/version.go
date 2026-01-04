@@ -4,5 +4,5 @@ Copyright © 2026 Sergey Polivin <s.polivin@gmail.com>
 package version
 
 const (
-	Version = "v2.0.0"
+	Version = "v2.0.1"
 )

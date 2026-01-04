@@ -5,7 +5,7 @@ package main
 
 import (
 	"github.com/joho/godotenv"
-	"github.com/spolivin/jobtracker/cmd"
+	"github.com/spolivin/jobtracker/v2/cmd"
 )
 
 func main() {

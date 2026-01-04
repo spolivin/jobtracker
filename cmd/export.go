@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/spolivin/jobtracker/internal/db"
-	"github.com/spolivin/jobtracker/internal/exporter"
+	"github.com/spolivin/jobtracker/v2/internal/db"
+	"github.com/spolivin/jobtracker/v2/internal/exporter"
 )
 
 var exportFormat string
