@@ -21,7 +21,7 @@ You can add, update, sort, search, list, delete and clear job application record
 Make sure you have Go installed (1.24+ recommended). You can install the tool directly from the repository:
 
 ```bash
-go install github.com/spolivin/jobtracker@latest
+go install github.com/spolivin/jobtracker/v2@latest
 ```
 
 After installation, you can make sure that the latest version is installed (v2.0.0) by running:
