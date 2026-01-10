@@ -1,4 +1,10 @@
+# Exported files
 *.json
 *.csv
+
+# Compiled binaries
 *.exe
+jobtracker
+
+# Dotenv
 .env
