@@ -11,7 +11,7 @@ import (
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "A brief description of your command",
+	Short: "Display program version",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Printf("JobTracker version %s\n", version.Version)
 	},

@@ -4,11 +4,11 @@ Copyright © 2026 Sergey Polivin <s.polivin@gmail.com>
 package cmd
 
 import (
-	"context"
-	"time"
+	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/spolivin/jobtracker/v2/internal/db"
+	"github.com/spolivin/jobtracker/v2/internal/db/config"
 )
 
 var company string
@@ -19,14 +19,36 @@ var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a new job application",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		// Ensure the database schema is set up
-		if schemaerr := db.EnsureSchema(ctx); schemaerr != nil {
-			return schemaerr
+
+		cfg, err := config.LoadConfig()
+		if err != nil {
+			return fmt.Errorf("Config file not found. Run `jobtracker configure` first")
 		}
+
+		password, err := config.PromptPassword()
+		if err != nil {
+			return err
+		}
+
+		ctx := cmd.Context()
+
+		dbase, err := db.Connect(ctx, cfg, password)
+		if err != nil {
+			return err
+		}
+		defer dbase.Close()
+		// Check if 'applications' table exists in Postgres
+		tableExists, err := db.CheckTableExists(ctx, dbase, "applications")
+		if err != nil {
+			return err
+		}
+		if !tableExists {
+			return fmt.Errorf("Add cannot proceed: table 'applications' does not exist. Run `jobtracker migrate` to create one.")
+		}
+
 		// Add the job application to the database
-		if err := db.AddJobApplication(ctx, company, position, status); err != nil {
+		store := db.NewJobApplicationStore(dbase)
+		if err := store.Add(ctx, company, position, status); err != nil {
 			return err
 		}
 		cmd.Println("Job application added successfully")
