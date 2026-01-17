@@ -4,7 +4,7 @@ A simple command-line tool written in Go to help you keep track of your job appl
 
 You can add, update, sort, search, list, delete and clear job application records stored in a Postgres database.
 
-## Features
+## ✨ Features
 
 - **Add** new job applications with company, position and status.
 - **List** all saved job applications in a clean tabular format.
@@ -14,11 +14,11 @@ You can add, update, sort, search, list, delete and clear job application record
 - **Clear** all stored applications.
 - **Sort** job applications.
 - **Export** saved job applications to CSV and JSON.
-- Starting from *v2.0.0* CLI interacts with **PostgreSQL** database for more convenient data storing
+- Starting from *v2* CLI interacts with **PostgreSQL** database for more convenient data storing
 
-## Installation
+## 🚀 Installation
 
-Make sure you have Go installed (1.24+ recommended). You can install the tool directly from the repository:
+Make sure you have Go installed (1.24.5+). You can install the tool directly from the repository:
 
 ```bash
 go install github.com/spolivin/jobtracker/v2@latest
@@ -38,27 +38,54 @@ General command structure:
 jobtracker [command] [flags]
 ```
 
+### *New* in **Version 2.1.0**
+
+The newest version of the CLI (v2.1.0) enables avoiding having `.env` file set up in the same directory for the tool to work, thus removing the inconvenience. It is enough to run the command below to save Postgres connection parameters in a default config directory:
+
+```bash
+jobtracker configure
+```
+
+Afterwards we run migration command to make sure that all schemas are up-to-date:
+
+```bash
+jobtracker migrate
+```
+> Having run migration scripts enables being able to run primary commands without any problems. For security considerations, Postgres password is not stored in config set up by `jobtracker configure` and is required for running each command.
+
+### Setting up Postgres database
+
+In case of absence of locally running Postgres database, one can run one in *Docker*:
+
+```bash
+git clone https://github.com/spolivin/jobtracker.git
+cd jobtracker
+make start-db
+```
+> Database can be stopped by running `make stop-db`.
+
+### Development mode
+
+CLI can also be tested locally without standard installation by building and then running basic commands specified in *Makefile*:
+
+```bash
+make build
+make populate-db
+```
+> Database should be up and running.
+
 ### Available commands
 
 * `add` - Add a new job application.
-* `update` - Update an existing job application.
-* `search` - Search a job application based on a keyword.
-* `list` - List all saved job applications.
-* `delete` - Delete a specific job application by its ID.
 * `clear` - Clear all job applications at once.
+* `configure` - Configure database connection
+* `delete` - Delete a specific job application by its ID.
 * `export` - Export all job applications to a CSV or JSON file.
-
-**Important note:** Since CLI interacts with Postgres database, one needs to make sure to specify valid connection credentials in environmental variables or, even easier, in env-file which is loaded during runtime:
-
-```bash
-# .env
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres_user
-DB_PASSWORD=postgres_pass
-DB_NAME=postgres_name
-```
-> Replace placeholder connection details with valid ones.
+* `list` - List all saved job applications.
+* `migrate` - Run database migrations.
+* `search` - Search a job application based on a keyword.
+* `update` - Update an existing job application.
+* `version` - Display CLI version.
 
 ### Global flags
 
