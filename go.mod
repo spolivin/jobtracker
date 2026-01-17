@@ -3,10 +3,10 @@ module github.com/spolivin/jobtracker/v2
 go 1.24.5
 
 require (
-	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/olekukonko/tablewriter v1.0.9
 	github.com/spf13/cobra v1.9.1
+	golang.org/x/term v0.39.0
 )
 
 require (
@@ -19,5 +19,5 @@ require (
 	github.com/olekukonko/ll v0.0.9 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.7 // indirect
-	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
 )
