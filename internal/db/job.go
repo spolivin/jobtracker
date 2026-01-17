@@ -3,19 +3,32 @@ Copyright © 2026 Sergey Polivin <s.polivin@gmail.com>
 */
 package db
 
-import "context"
+import (
+	"context"
+	"database/sql"
+)
 
-// AddJobApplication adds a new job application to the database.
-func AddJobApplication(ctx context.Context, company, position, status string) error {
+// Wrapper around SQL-connection.
+type JobApplicationsStore struct {
+	db *sql.DB
+}
+
+// Constructor for JobApplicationsStore.
+func NewJobApplicationStore(db *sql.DB) *JobApplicationsStore {
+	return &JobApplicationsStore{db: db}
+}
+
+// Add adds a new job application to the database.
+func (s *JobApplicationsStore) Add(ctx context.Context, company, position, status string) error {
 	query := `INSERT INTO applications (company, position, status) VALUES ($1, $2, $3)`
-	if _, err := DB.ExecContext(ctx, query, company, position, status); err != nil {
+	if _, err := s.db.ExecContext(ctx, query, company, position, status); err != nil {
 		return err
 	}
 	return nil
 }
 
-// ReadJobApplications retrieves all job applications from the database with possible sorting by a specified field.
-func ReadJobApplications(ctx context.Context, sortBy string, descending bool) ([]JobApplication, error) {
+// Read retrieves all job applications from the database with possible sorting by a specified field.
+func (s *JobApplicationsStore) Read(ctx context.Context, sortBy string, descending bool) ([]JobApplication, error) {
 	query := `SELECT id, company, position, status, created_at, updated_at FROM applications`
 	if sortBy != "" {
 		query += ` ORDER BY ` + sortBy
@@ -23,7 +36,7 @@ func ReadJobApplications(ctx context.Context, sortBy string, descending bool) ([
 			query += ` DESC`
 		}
 	}
-	rows, err := DB.QueryContext(ctx, query)
+	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -40,10 +53,10 @@ func ReadJobApplications(ctx context.Context, sortBy string, descending bool) ([
 	return applications, rows.Err()
 }
 
-// UpdateJobApplicationStatus updates the status of a job application.
-func UpdateJobApplicationStatus(ctx context.Context, id int, status string) (int64, error) {
+// Update updates the status of a job application.
+func (s *JobApplicationsStore) Update(ctx context.Context, id int, status string) (int64, error) {
 	query := `UPDATE applications SET status=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2`
-	res, err := DB.ExecContext(ctx, query, status, id)
+	res, err := s.db.ExecContext(ctx, query, status, id)
 	if err != nil {
 		return 0, err
 	}
@@ -54,10 +67,10 @@ func UpdateJobApplicationStatus(ctx context.Context, id int, status string) (int
 	return rowsAffected, nil
 }
 
-// DeleteJobApplication deletes a job application from the database.
-func DeleteJobApplication(ctx context.Context, id int) (int64, error) {
+// Delete deletes a job application from the database.
+func (s *JobApplicationsStore) Delete(ctx context.Context, id int) (int64, error) {
 	query := `DELETE FROM applications WHERE id=$1`
-	res, err := DB.ExecContext(ctx, query, id)
+	res, err := s.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return 0, err
 	}
@@ -68,17 +81,17 @@ func DeleteJobApplication(ctx context.Context, id int) (int64, error) {
 	return rowsAffected, nil
 }
 
-// DropJobApplicationsTable drops the applications table from the database.
-func DropJobApplicationsTable(ctx context.Context) error {
-	query := `DROP TABLE applications`
-	_, err := DB.ExecContext(ctx, query)
+// Clear clears all job applications from the table.
+func (s *JobApplicationsStore) Clear(ctx context.Context) error {
+	query := `TRUNCATE TABLE applications`
+	_, err := s.db.ExecContext(ctx, query)
 	return err
 }
 
-// SearchJobApplications searches for job applications matching the given keyword in company, position, or status.
-func SearchJobApplications(ctx context.Context, keyword string) ([]JobApplication, error) {
+// Search searches for job applications matching the given keyword in company, position, or status.
+func (s *JobApplicationsStore) Search(ctx context.Context, keyword string) ([]JobApplication, error) {
 	query := `SELECT id, company, position, status, created_at, updated_at FROM applications WHERE company ILIKE $1 OR position ILIKE $1 OR status ILIKE $1`
-	rows, err := DB.QueryContext(ctx, query, "%"+keyword+"%")
+	rows, err := s.db.QueryContext(ctx, query, "%"+keyword+"%")
 	if err != nil {
 		return nil, err
 	}
