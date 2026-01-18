@@ -1,194 +1,358 @@
 # JobTracker CLI
 
-A simple command-line tool written in Go to help you keep track of your job applications.  
+> A PostgreSQL-backed command-line application for managing job applications with precision and efficiency.
 
-You can add, update, sort, search, list, delete and clear job application records stored in a Postgres database.
+[![Go Version](https://img.shields.io/badge/Go-1.24.5+-00ADD8?style=flat&logo=go)](https://golang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Latest Release](https://img.shields.io/github/v/release/spolivin/jobtracker)](https://github.com/spolivin/jobtracker/releases)
 
-## ✨ Features
+## Overview
 
-- **Add** new job applications with company, position and status.
-- **List** all saved job applications in a clean tabular format.
-- **Update** existing job applications.
-- **Search** job applications.
-- **Delete** specific applications by ID.
-- **Clear** all stored applications.
-- **Sort** job applications.
-- **Export** saved job applications to CSV and JSON.
-- Starting from *v2* CLI interacts with **PostgreSQL** database for more convenient data storing
+JobTracker is a professional-grade CLI tool designed to streamline the job application tracking process. Built with Go and PostgreSQL, it provides a robust, database-backed solution for managing application workflows, eliminating the chaos of spreadsheet-based tracking.
 
-## 🚀 Installation
+## Key features
 
-Make sure you have Go installed (1.24.5+). You can install the tool directly from the repository:
+### Core functionality
+
+* **Application Management** - Complete CRUD operations for job applications
+* **Advanced Search** - Keyword-based queries across company names, positions, and statuses
+* **Flexible Sorting** - Sort by any column in ascending or descending order
+* **Data Export** - Export application data to CSV or JSON formats
+* **Clean Interface** - Formatted tabular display with automatic timestamp tracking
+
+### Technical highlights
+
+* PostgreSQL backend for reliable data persistence
+* Automated database migrations
+* Streamlined configuration management
+* Docker Compose support for development
+* Cross-platform compatibility
+
+## Installation
+
+### Prerequisistes
+
+* Go 1.24.5 or higher
+* PostgreSQL database (local or Docker)
+
+### Quick install
+
+Install directly from GitHub:
 
 ```bash
 go install github.com/spolivin/jobtracker/v2@latest
 ```
 
-After installation, you can make sure that the latest version is installed (v2.0.0) by running:
+Verify installation:
 
 ```bash
 jobtracker version
 ```
+> Expected output: `JobTracker version v2.2.0`
 
-## Usage 
+## Getting started
 
-General command structure:
+### Initial Setup
 
-```bash
-jobtracker [command] [flags]
-```
+1. **Configure database connection**
 
-### *New* in **Version 2.1.0**
-
-The newest version of the CLI (v2.1.0) enables avoiding having `.env` file set up in the same directory for the tool to work, thus removing the inconvenience. It is enough to run the command below to save Postgres connection parameters in a default config directory:
+Run the configuration wizard:
 
 ```bash
 jobtracker configure
 ```
 
-Afterwards we run migration command to make sure that all schemas are up-to-date:
+You'll be prompted to enter:
+
+* Database host (default: localhost)
+* Database port (default: 5432)
+* Database name (default: postgres)
+* Database user (default: postgres)
+
+Configuration is saved to your system's default config directory:
+
+* Linux/macOS: `~/.config/jobtracker/config.json`
+* Windows: `%APPDATA%\jobtracker\config.json`
+
+**View current configuration:**
+
+```bash
+jobtracker config
+```
+
+Example output:
+
+```
+host=localhost
+port=6432
+user=appuser
+dbname=appdb
+```
+> **Security Note:** Database passwords are not stored in configuration files. You'll be prompted to enter your password when executing commands.
+
+**Updating configuration:**
+
+To change configuration, run `jobtracker configure` again. This will overwrite existing settings.
+
+**Manual configuration:**
+
+* *Linux/macOS*
+
+```bash
+nano ~/.config/jobtracker/config.json
+```
+
+* *Windows*
+
+```powershell
+notepad %APPDATA%\jobtracker\config.json
+```
+
+Configuration file format:
+
+```json
+{
+  "db_host": "localhost",
+  "db_port": 6432,
+  "db_user": "appuser",
+  "db_name": "appdb"
+}
+```
+
+2. **Run database migrations**
 
 ```bash
 jobtracker migrate
 ```
-> Having run migration scripts enables being able to run primary commands without any problems. For security considerations, Postgres password is not stored in config set up by `jobtracker configure` and is required for running each command.
+This command:
 
-### Setting up Postgres database
+* Creates the applications table if it doesn't exist
+* Applies any pending schema updates
+* Can be run safely multiple times (idempotent)
 
-In case of absence of locally running Postgres database, one can run one in *Docker*:
+### Setting Up PostgreSQL
+
+#### Option 1: Docker (Recommended for Development)
+
+Clone the repository and start the database:
 
 ```bash
 git clone https://github.com/spolivin/jobtracker.git
 cd jobtracker
 make start-db
 ```
-> Database can be stopped by running `make stop-db`.
 
-### Development mode
-
-CLI can also be tested locally without standard installation by building and then running basic commands specified in *Makefile*:
+Stop the database when finished:
 
 ```bash
-make build
-make populate-db
+make stop-db
 ```
-> Database should be up and running.
 
-### Available commands
+#### Option 2: Local PostgreSQL Installation
 
-* `add` - Add a new job application.
-* `clear` - Clear all job applications at once.
-* `configure` - Configure database connection
-* `delete` - Delete a specific job application by its ID.
-* `export` - Export all job applications to a CSV or JSON file.
-* `list` - List all saved job applications.
-* `migrate` - Run database migrations.
-* `search` - Search a job application based on a keyword.
-* `update` - Update an existing job application.
-* `version` - Display CLI version.
+Ensure PostgreSQL is installed and running on your system. Configure connection details using `jobtracker configure`.
 
-### Global flags
+## Usage
 
-* `-h, --help` - Help for a command. 
+### Command reference
 
-## Examples
+| Command | Description |
+|---|---|
+| `add` | Create a new job application entry |
+| `list` | Display all applications in tabular format |
+| `update` | Modify an existing application |
+| `search` | Find applications by keyword |
+| `delete` | Remove a specific application by ID |
+| `clear` | Delete all applications (with confirmation) |
+| `export` | Export data to CSV or JSON |
+| `configure` | Set up database connection |
+| `config` | Display current database configuration |
+| `migrate` | Execute database migrations |
+| `version` | Display CLI version information |
 
-### Add a new job application
+### Common workflows
+
+---
+
+#### Adding applications
+
+**Full specification:**
 
 ```bash
 jobtracker add --company "OpenAI" --position "ML Engineer" --status "Applied"
 ```
 
-Specifying `--status` is not strictly required, in case this flag is missing, it will be replaced with `"Applied"` for `status`:
+**Quick add** (status defaults to "Applied"):
 
 ```bash
-jobtracker add -c "OpenAI" -p "ML Engineer"
+jobtracker add -c "Google" -p "Software Engineer"
 ```
-> Running this command will create `applications` table in PostgreSQL database for storing the job applications history.
 
-### List all job applications
+---
+
+#### Viewing applications
+
+**List all:**
 
 ```bash
 jobtracker list
 ```
 
-Running the above command will output the saved job applications in a convenient and easy-to-read format:
-
-```
-┌────┬───────────┬─────────────────────────────┬───────────┬───────────────────────────┬───────────────────────────┐
-│ ID │  COMPANY  │          POSITION           │  STATUS   │        CREATED AT         │        UPDATED AT         │
-├────┼───────────┼─────────────────────────────┼───────────┼───────────────────────────┼───────────────────────────┤ 
-│ 1  │ Facebook  │ Software Engineer           │ Applied   │ 2026-01-04T11:56:50+01:00 │ 2026-01-04T11:56:50+01:00 │ 
-│ 2  │ Google    │ Data Scientist              │ Interview │ 2026-01-04T11:56:55+01:00 │ 2026-01-04T11:56:55+01:00 │ 
-│ 3  │ Apple     │ Machine Learning Engineer   │ Applied   │ 2026-01-04T11:57:00+01:00 │ 2026-01-04T11:57:00+01:00 │ 
-│ 4  │ Microsoft │ Machine Learning Specialist │ Applied   │ 2026-01-04T11:57:09+01:00 │ 2026-01-04T11:57:09+01:00 │ 
-│ 5  │ Huawei    │ Frontend Developer          │ Applied   │ 2026-01-04T11:57:16+01:00 │ 2026-01-04T11:57:16+01:00 │ 
-│ 6  │ Luxoft    │ Backend Developer           │ Applied   │ 2026-01-04T11:57:22+01:00 │ 2026-01-04T11:57:22+01:00 │ 
-│ 7  │ NCR       │ Devops                      │ Applied   │ 2026-01-04T11:57:27+01:00 │ 2026-01-04T11:57:27+01:00 │ 
-└────┴───────────┴─────────────────────────────┴───────────┴───────────────────────────┴───────────────────────────┘
-```
-
-You can optionally sort the job applications by the above columns and display the result in the same convenient format in ascending or descending order (`--desc` flag):
+**Sorted view:**
 
 ```bash
 jobtracker list --sort status --desc
 ```
 
-### Search job applications
+Example output:
 
-One can find the job applications by running the search query in this way:
+```
+┌────┬──────────┬───────────────────────────┬───────────┬───────────────────────────┬───────────────────────────┐
+│ ID │ COMPANY  │         POSITION          │  STATUS   │        CREATED AT         │        UPDATED AT         │
+├────┼──────────┼───────────────────────────┼───────────┼───────────────────────────┼───────────────────────────┤
+│ 5  │ Facebook │ Software Engineer         │ Offer     │ 2026-01-18T18:55:53+01:00 │ 2026-01-18T18:57:00+01:00 │
+│ 7  │ Apple    │ Machine Learning Engineer │ Interview │ 2026-01-18T18:56:29+01:00 │ 2026-01-18T18:57:09+01:00 │
+│ 6  │ Google   │ Data Scientist            │ Applied   │ 2026-01-18T18:56:11+01:00 │ 2026-01-18T18:56:11+01:00 │
+└────┴──────────┴───────────────────────────┴───────────┴───────────────────────────┴───────────────────────────┘
+```
+
+---
+
+#### Searching applications
+
+Search across company, position, and status fields:
 
 ```bash
-jobtracker search --keyword Applied
+jobtracker search --keyword "Engineer"
 ```
-> Matches for company name, position name and status are searched.
 
-### Update an existing applications
+#### Updating applications
 
-If at some point we need to update the information on some applications, we can run:
+Update application status:
 
 ```bash
-jobtracker update --id 3 --status Interview
+jobtracker update --id 3 --status "Interview"
 ```
-> This command will update entry with ID=3 and modify `status` to `"Interview"`.
 
-### Delete an existing application
+---
+
+#### Deleting applications
+
+Single deletion:
 
 ```bash
 jobtracker delete --id 3
 ```
-> This command will delete entry with ID=3 from the Postgres table.
 
-### Clear all applications
+Clear all (with confirmation prompt):
 
 ```bash
 jobtracker clear
 ```
-> This command will firstly prompt for the user's confirmation and then delete all available applications. One can optionally set `--force` flag to skip prompting.
 
-### Export all applications to CSV or JSON
+Force clear (skip confirmation):
+
+```bash
+jobtracker clear --force
+```
+
+---
+
+#### Exporting data
+
+Export to JSON (default):
 
 ```bash
 jobtracker export
 ```
-> This command will export all applications stored in `applications` table to `exported_data.json`, while setting flag `--format csv` will save database data to `exported_data.csv`.
 
-## Data storage
+Export to CSV:
 
-All job applications are stored in `applications` table in the PostgreSQL database. Each entry includes:
+```bash
+jobtracker export --format csv
+```
 
-* ID – Auto-incremented unique identifier
+Output files: `exported_data.json` or `exported_data.csv`.
 
-* Company – Company name
+## Data schema
 
-* Position – Job title/role
+Applications are stored in the `applications` table with the following structure:
 
-* Status – Application status (Applied, Interviewing, Offer, Rejected, etc.)
+| Field | Type | Description | 
+|---|---|---|
+| `id` | Integer |Auto-incremented primary key |
+| `company` | String | Company name|
+| `position` | String | Job title/role |
+| `status` | String | Application status |
+| `created_at` | Timestamp | Record creation time (ISO 8601) |
+| `updated_at` | Timestamp | Last modification time (ISO 8601) |
 
-* CreatedAt – Stored in ISO 8601 format
+## Development
 
-* UpdatedAt – Stored in ISO 8601 format
+### Building from source
+
+```bash
+git clone https://github.com/spolivin/jobtracker.git
+cd jobtracker
+make build
+```
+
+### Development commands
+
+```bash
+# Start PostgreSQL in Docker
+make start-db
+
+# Stop PostgreSQL
+make stop-db
+
+# Populate database with sample data
+make populate-db
+```
+
+## Technology Stack
+
+- **Language:** Go 1.24.5+
+- **Database:** PostgreSQL
+- **CLI Framework:** [Cobra](https://github.com/spf13/cobra)
+- **Table Formatting:** [tablewriter](https://github.com/olekukonko/tablewriter)
+- **Containerization:** Docker, Docker Compose
+
+## Project Structure
+
+```
+jobtracker/
+├── cmd/                  # CLI command implementations
+├── internal/             # Internal packages
+│   ├── db/               # Database management (connection, migrations, CRUD, data models)
+│   ├── display/          # Data display
+|   ├── exporter/         # Data export to JSON or CSV
+│   └── version/          # CLI version tracking
+├── docker-compose.yml    # PostgreSQL container definition
+├── Makefile              # Development automation
+└── main.go               # Application entry point
+```
+
+## Version history
+
+See [RELEASES](https://github.com/spolivin/jobtracker/releases) for detailed changelog.
+
+Current Version: v2.2.0 (Latest):
+
+* Simplified configuration workflow
+* Enhanced user experience
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## License
 
-MIT License. See [LICENSE](./LICENSE) for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+## Support
+
+For bugs, feature requests, or questions:
+
+* Open an [issue](https://github.com/spolivin/jobtracker/issues)
+* Check existing [releases](https://github.com/spolivin/jobtracker/releases)
