@@ -14,6 +14,7 @@ import (
 )
 
 var exportFormat string
+var exportFilename string
 
 // exportCmd represents the export command
 var exportCmd = &cobra.Command{
@@ -26,7 +27,7 @@ var exportCmd = &cobra.Command{
 			return fmt.Errorf("Config file not found. Run `jobtracker configure` first")
 		}
 
-		password, err := config.PromptPassword()
+		password, err := config.GetPassword()
 		if err != nil {
 			return err
 		}
@@ -59,12 +60,12 @@ var exportCmd = &cobra.Command{
 		// Export data based on the specified format
 		switch exportFormat {
 		case "json":
-			if err := exporter.ExportToJson(rows, "exported_data.json"); err != nil {
+			if err := exporter.ExportToJson(rows, exportFilename + "." + exportFormat); err != nil {
 				return err
 			}
 
 		case "csv":
-			if err := exporter.ExportToCsv(rows, "exported_data.csv"); err != nil {
+			if err := exporter.ExportToCsv(rows, exportFilename + "." + exportFormat); err != nil {
 				return err
 			}
 		default:
@@ -78,6 +79,9 @@ var exportCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(exportCmd)
 
-	exportCmd.Flags().StringVarP(&exportFormat, "format", "f", "json", "Export format (json or csv)")
+	exportCmd.Flags().StringVarP(&exportFormat, "format", "f", "", "Export format (json or csv)")
+	exportCmd.Flags().StringVarP(&exportFilename, "output", "o", "exported_data", "Output filename (without extension)")
+
+	exportCmd.MarkFlagRequired("format")
 
 }
