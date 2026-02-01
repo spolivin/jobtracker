@@ -6,6 +6,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"strconv"
 )
 
 // Wrapper around SQL-connection.
@@ -29,7 +30,7 @@ func (s *JobApplicationsStore) Add(ctx context.Context, company, position, statu
 
 // Read retrieves all job applications from the database with possible sorting by a specified field.
 func (s *JobApplicationsStore) Read(ctx context.Context, sortBy string, descending bool) ([]JobApplication, error) {
-	query := `SELECT id, company, position, status, created_at, updated_at FROM applications`
+	query := `SELECT * FROM applications`
 	if sortBy != "" {
 		query += ` ORDER BY ` + sortBy
 		if descending {
@@ -53,18 +54,35 @@ func (s *JobApplicationsStore) Read(ctx context.Context, sortBy string, descendi
 	return applications, rows.Err()
 }
 
-// Update updates the status of a job application.
-func (s *JobApplicationsStore) Update(ctx context.Context, id int, status string) (int64, error) {
-	query := `UPDATE applications SET status=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2`
-	res, err := s.db.ExecContext(ctx, query, status, id)
-	if err != nil {
-		return 0, err
-	}
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return rowsAffected, nil
+// Update updates fields of a job application. Only provided fields are updated.
+func (s *JobApplicationsStore) Update(ctx context.Context, id int, fields map[string]string) (int64, error) {
+       if len(fields) == 0 {
+	       return 0, nil
+       }
+       setClause := ""
+       args := make([]any, 0, len(fields)+1)
+       i := 1
+       for k, v := range fields {
+	       if setClause != "" {
+		       setClause += ", "
+	       }
+	       setClause += k + "=$" + strconv.Itoa(i)
+	       args = append(args, v)
+	       i++
+       }
+
+       setClause += ", updated_at=CURRENT_TIMESTAMP"
+       query := "UPDATE applications SET " + setClause + " WHERE id=$" + strconv.Itoa(i)
+       args = append(args, id)
+       res, err := s.db.ExecContext(ctx, query, args...)
+       if err != nil {
+	       return 0, err
+       }
+       rowsAffected, err := res.RowsAffected()
+       if err != nil {
+	       return 0, err
+       }
+       return rowsAffected, nil
 }
 
 // Delete deletes a job application from the database.
@@ -81,9 +99,9 @@ func (s *JobApplicationsStore) Delete(ctx context.Context, id int) (int64, error
 	return rowsAffected, nil
 }
 
-// Clear clears all job applications from the table.
+// Clear clears all job applications from the table and resets the ID sequence.
 func (s *JobApplicationsStore) Clear(ctx context.Context) error {
-	query := `TRUNCATE TABLE applications`
+	query := `TRUNCATE TABLE applications RESTART IDENTITY`
 	_, err := s.db.ExecContext(ctx, query)
 	return err
 }
