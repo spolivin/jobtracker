@@ -27,7 +27,7 @@ var clearCmd = &cobra.Command{
 			return fmt.Errorf("Config file not found. Run `jobtracker configure` first")
 		}
 
-		password, err := config.PromptPassword()
+		password, err := config.GetPassword()
 		if err != nil {
 			return err
 		}
@@ -53,7 +53,7 @@ var clearCmd = &cobra.Command{
 			answer, _ := reader.ReadString('\n')
 			answer = strings.TrimSpace(strings.ToLower(answer))
 			if answer != "y" && answer != "yes" {
-				fmt.Fprintln(os.Stderr, "Drop operation cancelled.")
+				fmt.Fprintln(os.Stderr, "Clear operation cancelled.")
 				return nil
 			}
 		}

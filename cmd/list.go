@@ -26,7 +26,7 @@ var listCmd = &cobra.Command{
 			return fmt.Errorf("Config file not found. Run `jobtracker configure` first")
 		}
 
-		password, err := config.PromptPassword()
+		password, err := config.GetPassword()
 		if err != nil {
 			return err
 		}

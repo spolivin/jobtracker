@@ -61,10 +61,18 @@ func SaveConfig(c *ConnectionConfig) (string, error) {
 	return p, os.WriteFile(p, data, 0600)
 }
 
-// PromptPassword prompts for a user to enter password to Postgres.
-func PromptPassword() (string, error) {
+// promptPassword prompts for a user to enter password to Postgres.
+func promptPassword() (string, error) {
 	fmt.Print("Postgres password: ")
 	b, err := term.ReadPassword(int(os.Stdin.Fd()))
 	fmt.Println()
 	return string(b), err
+}
+
+// GetPassword retrieves Postgres password from environment variable or prompts the user.
+func GetPassword() (string, error) {
+	if os.Getenv("DB_PASS") == "" {
+		return promptPassword()
+	}
+	return os.Getenv("DB_PASS"), nil
 }
