@@ -14,26 +14,26 @@ JobTracker is a professional-grade CLI tool designed to streamline the job appli
 
 ### Core functionality
 
-* **Application Management** - Complete CRUD operations for job applications
-* **Advanced Search** - Keyword-based queries across company names, positions, and statuses
-* **Flexible Sorting** - Sort by any column in ascending or descending order
-* **Data Export** - Export application data to CSV or JSON formats
-* **Clean Interface** - Formatted tabular display with automatic timestamp tracking
+- **Application Management** - Complete CRUD operations for job applications
+- **Advanced Search** - Keyword-based queries across company names, positions, and statuses
+- **Flexible Sorting** - Sort by any column in ascending or descending order
+- **Data Export** - Export application data to CSV or JSON formats
+- **Clean Interface** - Formatted tabular display with automatic timestamp tracking
 
 ### Technical highlights
 
-* PostgreSQL backend for reliable data persistence
-* Automated database migrations
-* Streamlined configuration management
-* Docker Compose support for development
-* Cross-platform compatibility
+- PostgreSQL backend for reliable data persistence
+- Automated database migrations
+- Streamlined configuration management
+- Docker Compose support for development
+- Cross-platform compatibility
 
 ## Installation
 
 ### Prerequisistes
 
-* Go 1.24.5 or higher
-* PostgreSQL database (local or Docker)
+- Go 1.24.5 or higher
+- PostgreSQL database (local or Docker)
 
 ### Quick install
 
@@ -48,7 +48,8 @@ Verify installation:
 ```bash
 jobtracker version
 ```
-> Expected output: `JobTracker version v2.2.0`
+
+> Expected output: `JobTracker version v2.3.0`
 
 ## Getting started
 
@@ -64,15 +65,15 @@ jobtracker configure
 
 You'll be prompted to enter:
 
-* Database host (default: localhost)
-* Database port (default: 5432)
-* Database name (default: postgres)
-* Database user (default: postgres)
+- Database host (default: localhost)
+- Database port (default: 5432)
+- Database name (default: postgres)
+- Database user (default: postgres)
 
 Configuration is saved to your system's default config directory:
 
-* Linux/macOS: `~/.config/jobtracker/config.json`
-* Windows: `%APPDATA%\jobtracker\config.json`
+- Linux/macOS: `~/.config/jobtracker/config.json`
+- Windows: `%APPDATA%\jobtracker\config.json`
 
 **View current configuration:**
 
@@ -88,7 +89,20 @@ port=6432
 user=appuser
 dbname=appdb
 ```
-> **Security Note:** Database passwords are not stored in configuration files. You'll be prompted to enter your password when executing commands.
+
+**SECURITY NOTE:** Database passwords are not stored in configuration files. You'll be prompted to enter your password when executing commands. Alternatively, to avoid entering password each time, you can set password via environmental variables on Linux:
+
+```bash
+export DB_PASS=secret
+```
+
+or on Windows:
+
+```powershell
+set DB_PASS=secret
+```
+
+> Setting environmental variables in such a way is only valid for the current shell. After closing session, one will have to set the password again.
 
 **Updating configuration:**
 
@@ -96,13 +110,13 @@ To change configuration, run `jobtracker configure` again. This will overwrite e
 
 **Manual configuration:**
 
-* *Linux/macOS*
+- _Linux/macOS_
 
 ```bash
 nano ~/.config/jobtracker/config.json
 ```
 
-* *Windows*
+- _Windows_
 
 ```powershell
 notepad %APPDATA%\jobtracker\config.json
@@ -124,11 +138,12 @@ Configuration file format:
 ```bash
 jobtracker migrate
 ```
+
 This command:
 
-* Creates the applications table if it doesn't exist
-* Applies any pending schema updates
-* Can be run safely multiple times (idempotent)
+- Creates the applications table if it doesn't exist
+- Applies any pending schema updates
+- Can be run safely multiple times (idempotent)
 
 ### Setting Up PostgreSQL
 
@@ -156,19 +171,19 @@ Ensure PostgreSQL is installed and running on your system. Configure connection 
 
 ### Command reference
 
-| Command | Description |
-|---|---|
-| `add` | Create a new job application entry |
-| `list` | Display all applications in tabular format |
-| `update` | Modify an existing application |
-| `search` | Find applications by keyword |
-| `delete` | Remove a specific application by ID |
-| `clear` | Delete all applications (with confirmation) |
-| `export` | Export data to CSV or JSON |
-| `configure` | Set up database connection |
-| `config` | Display current database configuration |
-| `migrate` | Execute database migrations |
-| `version` | Display CLI version information |
+| Command     | Description                                 |
+| ----------- | ------------------------------------------- |
+| `add`       | Create a new job application entry          |
+| `list`      | Display all applications in tabular format  |
+| `update`    | Modify an existing application              |
+| `search`    | Find applications by keyword                |
+| `delete`    | Remove a specific application by ID         |
+| `clear`     | Delete all applications (with confirmation) |
+| `export`    | Export data to CSV or JSON                  |
+| `configure` | Set up database connection                  |
+| `config`    | Display current database configuration      |
+| `migrate`   | Execute database migrations                 |
+| `version`   | Display CLI version information             |
 
 ### Common workflows
 
@@ -234,6 +249,12 @@ Update application status:
 jobtracker update --id 3 --status "Interview"
 ```
 
+or company and position names:
+
+```bash
+jobtracker update --id 3 --company "Tesla" --position "MLOps Engineer"
+```
+
 ---
 
 #### Deleting applications
@@ -256,14 +277,16 @@ Force clear (skip confirmation):
 jobtracker clear --force
 ```
 
+The `clear` command will clear all job applications from the SQL-table and reset the ID counter.
+
 ---
 
 #### Exporting data
 
-Export to JSON (default):
+Export to JSON:
 
 ```bash
-jobtracker export
+jobtracker export --format json
 ```
 
 Export to CSV:
@@ -272,19 +295,26 @@ Export to CSV:
 jobtracker export --format csv
 ```
 
-Output files: `exported_data.json` or `exported_data.csv`.
+Output files: `exported_data.json` or `exported_data.csv`. Alternatively, one can set filenames for exported files:
+
+```bash
+jobtracker export --format json --output applications
+jobtracker export --format csv --output applications
+```
+
+Output files: `applications.json` and `applications.csv`.
 
 ## Data schema
 
 Applications are stored in the `applications` table with the following structure:
 
-| Field | Type | Description | 
-|---|---|---|
-| `id` | Integer |Auto-incremented primary key |
-| `company` | String | Company name|
-| `position` | String | Job title/role |
-| `status` | String | Application status |
-| `created_at` | Timestamp | Record creation time (ISO 8601) |
+| Field        | Type      | Description                       |
+| ------------ | --------- | --------------------------------- |
+| `id`         | Integer   | Auto-incremented primary key      |
+| `company`    | String    | Company name                      |
+| `position`   | String    | Job title/role                    |
+| `status`     | String    | Application status                |
+| `created_at` | Timestamp | Record creation time (ISO 8601)   |
 | `updated_at` | Timestamp | Last modification time (ISO 8601) |
 
 ## Development
@@ -337,10 +367,12 @@ jobtracker/
 
 See [RELEASES](https://github.com/spolivin/jobtracker/releases) for detailed changelog.
 
-Current Version: v2.2.0 (Latest):
+Current Version: v2.3.0 (Latest):
 
-* Simplified configuration workflow
-* Enhanced user experience
+- Simplified configuration workflow
+- Enhanced user experience
+- Improved applications updating logic
+- Simplified password recognition for commands
 
 ## Contributing
 
@@ -354,5 +386,5 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 For bugs, feature requests, or questions:
 
-* Open an [issue](https://github.com/spolivin/jobtracker/issues)
-* Check existing [releases](https://github.com/spolivin/jobtracker/releases)
+- Open an [issue](https://github.com/spolivin/jobtracker/issues)
+- Check existing [releases](https://github.com/spolivin/jobtracker/releases)
