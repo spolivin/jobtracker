@@ -32,6 +32,10 @@ func (s *JobApplicationsStore) Add(ctx context.Context, company, position, statu
 func (s *JobApplicationsStore) Read(ctx context.Context, sortBy string, descending bool) ([]JobApplication, error) {
 	query := `SELECT * FROM applications`
 	if sortBy != "" {
+		// Validate column name to prevent SQL injection
+		if err := ValidateColumnName(sortBy); err != nil {
+			return nil, err
+		}
 		query += ` ORDER BY ` + sortBy
 		if descending {
 			query += ` DESC`
@@ -59,6 +63,16 @@ func (s *JobApplicationsStore) Update(ctx context.Context, id int, fields map[st
        if len(fields) == 0 {
 	       return 0, nil
        }
+
+       // Validate all column names to prevent SQL injection
+       fieldNames := make([]string, 0, len(fields))
+       for k := range fields {
+	       fieldNames = append(fieldNames, k)
+       }
+       if err := ValidateColumnNames(fieldNames); err != nil {
+	       return 0, err
+       }
+
        setClause := ""
        args := make([]any, 0, len(fields)+1)
        i := 1
