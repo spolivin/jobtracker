@@ -23,6 +23,7 @@ JobTracker is a professional-grade CLI tool designed to streamline the job appli
 ### Technical highlights
 
 - PostgreSQL backend for reliable data persistence
+- SQL injection protection with input validation
 - Automated database migrations
 - Streamlined configuration management
 - Docker Compose support for development
@@ -30,7 +31,7 @@ JobTracker is a professional-grade CLI tool designed to streamline the job appli
 
 ## Installation
 
-### Prerequisistes
+### Prerequisites
 
 - Go 1.24.5 or higher
 - PostgreSQL database (local or Docker)
@@ -49,7 +50,7 @@ Verify installation:
 jobtracker version
 ```
 
-> Expected output: `JobTracker version v2.3.0`
+> Expected output: `JobTracker version v2.4.0`
 
 ## Getting started
 
@@ -340,6 +341,102 @@ make stop-db
 make populate-db
 ```
 
+## Running Tests
+
+JobTracker includes a comprehensive test suite covering unit tests, security tests, and performance benchmarks.
+
+### Test Coverage
+
+The project includes tests for:
+
+- **Data Models** (`internal/db/models_test.go`) - JobApplication struct and conversion methods
+- **Security Validation** (`internal/db/validator_test.go`) - SQL injection protection and column name validation
+- **SQL Operations** (`internal/db/job_test.go`) - Database CRUD operations with security validation
+- **Version Management** (`internal/version/version_test.go`) - Semantic versioning compliance
+
+### Running Tests
+
+**Run all tests:**
+
+```bash
+go test ./...
+```
+
+**Run tests with verbose output:**
+
+```bash
+go test -v ./...
+```
+
+**Run tests for a specific package:**
+
+```bash
+go test ./internal/db
+go test ./internal/version
+```
+
+**Run specific test functions:**
+
+```bash
+go test -run TestValidateColumnName ./internal/db
+go test -run TestReadSQLInjectionProtection ./internal/db
+```
+
+### Code Coverage
+
+**Generate coverage report:**
+
+```bash
+go test -cover ./...
+```
+
+**Generate detailed coverage profile:**
+
+```bash
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out
+```
+
+This opens an HTML coverage report in your browser, highlighting tested and untested code.
+
+### Benchmark Tests
+
+**Run all benchmarks:**
+
+```bash
+go test -bench=. ./...
+```
+
+**Run specific benchmarks:**
+
+```bash
+go test -bench=BenchmarkValidateColumnName ./internal/db
+go test -bench=BenchmarkConvertToStringSlice ./internal/db
+```
+
+**Benchmarks with memory statistics:**
+
+```bash
+go test -bench=. -benchmem ./...
+```
+
+### Race Detection
+
+**Run tests with race detector** (recommended before commits):
+
+```bash
+go test -race ./...
+```
+
+This helps identify potential concurrency issues.
+
+### Test Categories
+
+- **Unit Tests** - Test individual functions and methods in isolation
+- **Security Tests** - Validate SQL injection protection and input validation
+- **Benchmark Tests** - Measure performance of critical operations
+- **Integration Tests** - Validate database operations (requires nil db mock for current tests)
+
 ## Technology Stack
 
 - **Language:** Go 1.24.5+
@@ -367,7 +464,14 @@ jobtracker/
 
 See [RELEASES](https://github.com/spolivin/jobtracker/releases) for detailed changelog.
 
-Current Version: v2.3.0 (Latest):
+Current Version: v2.4.0 (Latest):
+
+- Added SQL injection protection to Read and Update operations
+- Comprehensive test coverage for security vulnerabilities
+- Performance benchmarks for validation operations
+- Enhanced security with column name validation
+
+Previous Version (v2.3.0):
 
 - Simplified configuration workflow
 - Enhanced user experience
