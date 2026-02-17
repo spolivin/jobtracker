@@ -150,30 +150,3 @@ func TestUpdateSQLInjectionProtection(t *testing.T) {
 		})
 	}
 }
-
-// BenchmarkReadValidation benchmarks the Read method with validation
-func BenchmarkReadValidation(b *testing.B) {
-	store := &JobApplicationsStore{db: nil}
-	ctx := context.Background()
-
-	b.ResetTimer()
-	for b.Loop() {
-		_, _ = store.Read(ctx, "company", false)
-	}
-}
-
-// BenchmarkUpdateValidation benchmarks the Update method with validation
-func BenchmarkUpdateValidation(b *testing.B) {
-	store := &JobApplicationsStore{db: nil}
-	ctx := context.Background()
-	fields := map[string]string{
-		"company":  "TestCorp",
-		"position": "Engineer",
-		"status":   "Applied",
-	}
-
-	b.ResetTimer()
-	for b.Loop() {
-		_, _ = store.Update(ctx, 1, fields)
-	}
-}
